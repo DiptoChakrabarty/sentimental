@@ -85,12 +85,22 @@ model.append(("knn",KNeighborsClassifier()))
 for mod,clf in model:
     scores = cross_val_score(clf,inputdata,data["label"],scoring="accuracy",cv=5)
     print("Model is {} and Score is {}".format(mod,scores.mean()))
-''''
+'''
 #Hyper tuning
+'''
 param_grid = {"C" : [0.001,0.01,0.1]}
 grid = GridSearchCV(LogisticRegression(),param_grid,cv=5)
 grid.fit(inputdata,data["label"])
 
-print(grid.best_estimator_)
+print(grid.best_estimator_)'''
+
+log = LogisticRegression(C=0.1)
+scores = cross_val_score(log,inputdata,data["label"],scoring="accuracy",cv=3)
+print("Scores obtained is {}".format(scores))
+
+X_train, X_test, y_train, y_test = train_test_split( inputdata,data["label"], test_size=0.33, random_state=42) 
+
+log.fit(X_train,y_train)
+print(log.predict(X_test))
 
 
