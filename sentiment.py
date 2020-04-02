@@ -27,10 +27,10 @@ def count_punct(text):
 
 data = pd.read_csv("sentiment.csv",sep="\t")
 data.columns = ["label","body"]
-print(data.head())
+#print(data.head())
 enc = LabelEncoder()
 data["label"]= enc.fit_transform(data["label"])
-print(data.head())
+#print(data.head())
 
 ## clean data
 
@@ -39,5 +39,16 @@ data["notweets"] = np.vectorize(patternremove)(data["body"],"@[\w]*")
 print(data.head())
 
 ##remove punctuations
-data["notweets"] = data["notweets"].str.replace("[^a-zA-Z#]","")
+data["notweets"] = data["notweets"].str.replace("[^a-zA-Z#]"," ")
+print(data.head())
+
+##tokenize tweets
+
+tokenized = data["notweets"].apply(lambda x: x.split())
+stemmer = PorterStemmer()
+tokenized = tokenized.apply(lambda x: [stemmer.stem(word) for word in x])
+
+for i in range(len(tokenized)):
+    tokenized[i] = " ".join(tokenized[i])
+data["tidy_text"] = tokenized
 print(data.head())
