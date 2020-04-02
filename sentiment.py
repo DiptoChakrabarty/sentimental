@@ -3,11 +3,18 @@ import numpy as np
 import nltk
 from nltk.stem.porter import PorterStemmer
 import re,string 
-from sklearn.feature_extraction.text import CountVectorizer
+from sklearn.feature_extraction.text import CountVectorizer,TfidfVectorizer
 from sklearn.preprocessing import LabelEncoder
-from sklearn.linear_model import LogisticRegression
-from sklearn.model_selection import train_test_split
+from sklearn.model_selection import train_test_split,cross_val_score,GridSearchCV
 from sklearn.metrics import f1_score,accuracy_score,roc_auc_score
+
+#Classification Models import 
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.linear_model import LogisticRegression
+from sklearn.tree import DecisionTreeClassifier
+from sklearn.neighbors import KNeighborsClassifier
+from sklearn.svm import SVC
+
 
 
 
@@ -24,26 +31,19 @@ def count_punct(text):
     return round(count/(len(text) - text.count(" ")),3)*100
 
 ## Model creation
-
 data = pd.read_csv("sentiment.csv",sep="\t")
 data.columns = ["label","body"]
-#print(data.head())
 enc = LabelEncoder()
 data["label"]= enc.fit_transform(data["label"])
-#print(data.head())
 
 ## clean data
 
 ## remove twitter handles
 data["notweets"] = np.vectorize(patternremove)(data["body"],"@[\w]*")
-print(data.head())
-
 ##remove punctuations
 data["notweets"] = data["notweets"].str.replace("[^a-zA-Z#]"," ")
 print(data.head())
-
 ##tokenize tweets
-
 tokenized = data["notweets"].apply(lambda x: x.split())
 stemmer = PorterStemmer()
 tokenized = tokenized.apply(lambda x: [stemmer.stem(word) for word in x])
@@ -63,4 +63,34 @@ vectorizer = CountVectorizer(stop_words="english")
 vect = vectorizer.fit_transform(data["tidy_text"])
 inputdata = pd.concat([data["length"],data["percentage"],pd.DataFrame(vect.toarray())],axis=1)
 print(inputdata.head())
+
+#tf-idf 
+tf=TfidfVectorizer(stop_words="english")
+tfvect = tf.fit_transform(data["tidy_text"])
+tfidfdata = pd.concat([data["length"],data["percentage"],pd.DataFrame(vect.toarray())],axis=1)
+print(tfidfdata.head())
+
+
+#models creation
+model =[]
+model.append(("lr",LogisticRegression()))
+model.append(("rf",RandomForestClassifier()))
+model.append(("db",DecisionTreeClassifier()))
+model.append(("svc",SVC()))
+model.append(("knn",KNeighborsClassifier()))
+
+#Cross Validation
+#Count Vectorizer and tfidf  change data 
+'''
+for mod,clf in model:
+    scores = cross_val_score(clf,inputdata,data["label"],scoring="accuracy",cv=5)
+    print("Model is {} and Score is {}".format(mod,scores.mean()))
+''''
+#Hyper tuning
+param_grid = {"C" : [0.001,0.01,0.1]}
+grid = GridSearchCV(LogisticRegression(),param_grid,cv=5)
+grid.fit(inputdata,data["label"])
+
+print(grid.best_estimator_)
+
 
