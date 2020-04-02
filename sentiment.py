@@ -52,3 +52,15 @@ for i in range(len(tokenized)):
     tokenized[i] = " ".join(tokenized[i])
 data["tidy_text"] = tokenized
 print(data.head())
+
+data["length"] = data["body"].apply(lambda x:len(x) - x.count(" "))
+data["percentage"] = data["body"].apply(lambda x: count_punct(x))
+
+words = " ".join([sent for sent in data["tidy_text"]])
+
+## Count Vectorizer 
+vectorizer = CountVectorizer(stop_words="english")
+vect = vectorizer.fit_transform(data["tidy_text"])
+inputdata = pd.concat([data["length"],data["percentage"],pd.DataFrame(vect.toarray())],axis=1)
+print(inputdata.head())
+
