@@ -2,7 +2,7 @@
 <html>
 <head>
 	<title></title>
-    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/styles.css') }}">
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='styles.css') }}">
 </head>
 <body>
 
@@ -20,9 +20,9 @@
 
 
 		
-	{% if prediction == 1%}
+	{% if pred == 1 %}
 	<h2 style="color:red;">It's a Negative Comment</h2>
-	{% elif prediction == 0%}
+	{% elif pred == 0 %}
 	<h2 style="color:blue;">It's Positive Comment</h2>
 	{% endif %}
 
