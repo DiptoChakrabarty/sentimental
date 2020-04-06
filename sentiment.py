@@ -1,6 +1,6 @@
 import pandas as pd 
 import numpy as np 
-import nltk
+import nltk,pickle
 from nltk.stem.porter import PorterStemmer
 import re,string 
 from sklearn.feature_extraction.text import CountVectorizer,TfidfVectorizer
@@ -35,6 +35,11 @@ def count_punct(text):
 def vector():
     vectorizer = CountVectorizer(stop_words="english",vocabulary=vocabulary)
     return vectorizer
+
+def tf():
+    tf= TfidfVectorizer(stop_words="english",vocabulary=vocabulary)
+    return tf
+
 
 ## Model creation
 data = pd.read_csv("sentiment.csv",sep="\t")
@@ -72,9 +77,10 @@ inputdata = pd.concat([data["length"],data["percentage"],pd.DataFrame(vect.toarr
 print(inputdata.head())
 
 #tf-idf 
-tf=TfidfVectorizer(stop_words="english")
-tfvect = tf.fit_transform(data["tidy_text"])
-tfidfdata = pd.concat([data["length"],data["percentage"],pd.DataFrame(vect.toarray())],axis=1)
+tfidf=tf()
+tfvect = tfidf.fit_transform(data["tidy_text"])
+pickle.dump(tfidf.vocabulary_,open("feature.pkl","wb"))
+tfidfdata = pd.concat([data["percentage"],pd.DataFrame(vect.toarray())],axis=1)
 print(tfidfdata.head())
 
 
@@ -88,25 +94,23 @@ model.append(("knn",KNeighborsClassifier()))
 
 #Cross Validation
 #Count Vectorizer and tfidf  change data 
-'''
+
 for mod,clf in model:
-    scores = cross_val_score(clf,inputdata,data["label"],scoring="accuracy",cv=5)
+    scores = cross_val_score(clf,tfidfdata,data["label"],scoring="accuracy",cv=5)
     print("Model is {} and Score is {}".format(mod,scores.mean()))
-'''
+
 #Hyper tuning
 
 
 '''param_grid = {"C" : [0.001,0.01,0.1,1,10]}
 grid = GridSearchCV( LogisticRegression(),param_grid,cv=5)
-grid.fit(inputdata,data["label"])
+grid.fit(tfidfdata,data["label"])
 
 print(grid.best_estimator_)'''
 
-'''log = LogisticRegression(C=0.1)
-scores = cross_val_score(log,inputdata,data["label"],scoring="accuracy",cv=3)
-print("Scores obtained is {}".format(scores))'''
 
-X_train, X_test, y_train, y_test = train_test_split( inputdata,data["label"], test_size=0.20, random_state=42) 
+
+X_train, X_test, y_train, y_test = train_test_split( tfidfdata,data["label"], test_size=0.20, random_state=42) 
 log = LogisticRegression(C=0.001, class_weight=None, dual=False, fit_intercept=True,
                    intercept_scaling=1, l1_ratio=None, max_iter=100,
                    multi_class='auto', n_jobs=None, penalty='l2',

@@ -2,8 +2,8 @@ from flask import Flask, render_template,url_for,request
 from sklearn.externals import joblib
 import pandas as pd
 from sklearn.feature_extraction.text import CountVectorizer
-import string
-from sentiment import vector
+import string,pickle
+from sentiment import vector,tf
 
 def patternremove(text,pattern):
     reg = re.findall(pattern,text)
@@ -27,13 +27,14 @@ def home():
 @app.route("/predict",methods=["POST"])
 def predict():
     if request.method == "POST":
-        cv = vector()
+        print(1)
+        cv =  pickle.load(open("vectresult.pkl", "rb" ) )
         msg = request.form["message"]
         data = [msg]
         vect = pd.DataFrame(cv.transform(data).toarray())
         body_len = pd.DataFrame([len(data)- data.count(" ")])
         punct = pd.DataFrame([count_punct(data)])
-        total_data = pd.concat([body_len,punct,vect],axis=1)
+        total_data = pd.concat([punct,vect],axis=1)
 
         log = joblib.load("model.pkl")
         pred = log.predict(total_data)
