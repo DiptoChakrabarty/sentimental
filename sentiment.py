@@ -53,7 +53,7 @@ data["label"]= enc.fit_transform(data["label"])
 data["notweets"] = np.vectorize(patternremove)(data["body"],"@[\w]*")
 ##remove punctuations
 data["notweets"] = data["notweets"].str.replace("[^a-zA-Z#]"," ")
-print(data.head())
+#print(data.head())
 ##tokenize tweets
 tokenized = data["notweets"].apply(lambda x: x.split())
 stemmer = PorterStemmer()
@@ -62,7 +62,7 @@ tokenized = tokenized.apply(lambda x: [stemmer.stem(word) for word in x])
 for i in range(len(tokenized)):
     tokenized[i] = " ".join(tokenized[i])
 data["tidy_text"] = tokenized
-print(data.head())
+#print(data.head())
 
 data["length"] = data["body"].apply(lambda x:len(x) - x.count(" "))
 data["percentage"] = data["body"].apply(lambda x: count_punct(x))
@@ -74,30 +74,30 @@ words = " ".join([sent for sent in data["tidy_text"]])
 vectorizer =vector()
 vect = vectorizer.fit_transform(data["tidy_text"])
 inputdata = pd.concat([data["length"],data["percentage"],pd.DataFrame(vect.toarray())],axis=1)
-print(inputdata.head())
+#print(inputdata.head())
 
 #tf-idf 
 tfidf=tf()
 tfvect = tfidf.fit_transform(data["tidy_text"])
-pickle.dump(tfidf.vocabulary_,open("feature.pkl","wb"))
+pickle.dump(tfidf,open("feature.pkl","wb"))
 tfidfdata = pd.concat([data["percentage"],pd.DataFrame(vect.toarray())],axis=1)
-print(tfidfdata.head())
+#print(tfidfdata.head())
 
 
 #models creation
-model =[]
+'''model =[]
 model.append(("lr",LogisticRegression()))
 model.append(("rf",RandomForestClassifier()))
 model.append(("db",DecisionTreeClassifier()))
 model.append(("svc",SVC()))
-model.append(("knn",KNeighborsClassifier()))
+model.append(("knn",KNeighborsClassifier()))'''
 
 #Cross Validation
 #Count Vectorizer and tfidf  change data 
 
-for mod,clf in model:
-    scores = cross_val_score(clf,tfidfdata,data["label"],scoring="accuracy",cv=5)
-    print("Model is {} and Score is {}".format(mod,scores.mean()))
+#for mod,clf in model:
+ #   scores = cross_val_score(clf,tfidfdata,data["label"],scoring="accuracy",cv=5)
+  #  print("Model is {} and Score is {}".format(mod,scores.mean()))
 
 #Hyper tuning
 
@@ -121,8 +121,6 @@ log.fit(X_train,y_train)
 pred =log.predict(X_test)
 print(accuracy_score(pred,y_test))
 print(confusion_matrix(pred,y_test))
-
-
 '''param_grid = {"n_estimators" : [5,10,30,100]}
 grid = GridSearchCV( RandomForestClassifier(),param_grid,cv=5)
 grid.fit(inputdata,data["label"])
